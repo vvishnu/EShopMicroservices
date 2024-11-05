@@ -1,6 +1,7 @@
 
 
 using BuildingBlocks.Exceptions.Handler;
+using Discount.Grpc;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -34,6 +35,19 @@ builder.Services.AddStackExchangeRedisCache(options =>
 //    var basketRepository = provider.GetRequiredService<BasketRepository>();
 //    return new CachedBasketRepository(basketRepository, provider.GetRequiredService<IDistributedCache>());
 //});
+
+builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(options =>
+{
+    options.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]!);
+})
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        return handler;
+    });
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
